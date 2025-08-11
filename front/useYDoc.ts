@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import * as Y from "yjs";
 import { WebsocketProvider } from "y-websocket";
 import { Block } from "./api";
@@ -46,7 +46,7 @@ export function useYDoc(pageId: string) {
     };
   }, [pageId]);
 
-  const updateBlock = (blockId: string, content: string) => {
+  const updateBlock = useCallback((blockId: string, content: string) => {
     if (!blocksMapRef.current) return;
     const existingBlock = blocksMapRef.current.get(blockId);
     if (existingBlock) {
@@ -58,9 +58,9 @@ export function useYDoc(pageId: string) {
         updatedAt: Date.now(),
       });
     }
-  };
+  }, []);
 
-  const getBlocks = (): Block[] => {
+  const getBlocks = useCallback((): Block[] => {
     if (!blocksMapRef.current) return [];
     const blocks: Block[] = [];
     blocksMapRef.current.forEach((value, key) => {
@@ -72,9 +72,9 @@ export function useYDoc(pageId: string) {
       });
     });
     return blocks.sort((a, b) => a.position - b.position);
-  };
+  }, []);
 
-  const addBlock = (block: Block) => {
+  const addBlock = useCallback((block: Block) => {
     if (!blocksMapRef.current) return;
     blocksMapRef.current.set(block.id, {
       id: block.id,
@@ -82,14 +82,14 @@ export function useYDoc(pageId: string) {
       content: block.content,
       position: block.position,
     });
-  };
+  }, []);
 
-  const deleteBlock = (blockId: string) => {
+  const deleteBlock = useCallback((blockId: string) => {
     if (!blocksMapRef.current) return;
     blocksMapRef.current.delete(blockId);
-  };
+  }, []);
 
-  const getOnlineUsers = (): string[] => {
+  const getOnlineUsers = useCallback((): string[] => {
     if (!awarenessRef.current) return [];
     const users: string[] = [];
     awarenessRef.current.getStates().forEach((state: any) => {
@@ -98,7 +98,7 @@ export function useYDoc(pageId: string) {
       }
     });
     return [...new Set(users)];
-  };
+  }, []);
 
   return {
     isConnected,

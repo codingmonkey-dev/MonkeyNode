@@ -56,13 +56,13 @@ export function PageEditor({ pageId }: PageEditorProps) {
     };
   }, [localTitle, isComposing, page?.title]);
 
+  const updateBlocks = useCallback(() => {
+    const yjsBlocks = getBlocks();
+    setBlocks(yjsBlocks);
+  }, [getBlocks]);
+
   useEffect(() => {
     if (!blocksMap) return;
-
-    const updateBlocks = () => {
-      const yjsBlocks = getBlocks();
-      setBlocks(yjsBlocks);
-    };
 
     blocksMap.observe(updateBlocks);
     updateBlocks();
@@ -70,7 +70,7 @@ export function PageEditor({ pageId }: PageEditorProps) {
     return () => {
       blocksMap.unobserve(updateBlocks);
     };
-  }, [blocksMap, getBlocks]);
+  }, [blocksMap, updateBlocks]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -106,14 +106,17 @@ export function PageEditor({ pageId }: PageEditorProps) {
   };
 
   const saveToDatabase = useCallback(async () => {
-    if (page && blocks.length > 0) {
+    if (page) {
       try {
-        await pageApi.update(pageId, { ...page, blocks });
+        const currentBlocks = getBlocks();
+        if (currentBlocks.length > 0) {
+          await pageApi.update(pageId, { ...page, blocks: currentBlocks });
+        }
       } catch (error) {
         console.error("Failed to save to database:", error);
       }
     }
-  }, [page, pageId, blocks]);
+  }, [page, pageId, getBlocks]);
 
   const handleBlockUpdate = useCallback(
     (blockId: string, content: string) => {
