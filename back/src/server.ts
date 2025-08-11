@@ -4,8 +4,10 @@ import { Server } from "socket.io";
 import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import { YSocketIO } from "y-socket.io/dist/server";
+// @ts-ignore
+import { setupWSConnection } from "y-websocket/bin/utils";
 import { createPageRoutes } from "./routes/pages";
+import { WebSocketServer } from "ws";
 
 dotenv.config();
 
@@ -31,12 +33,11 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-const ysocketio = new YSocketIO(io, {
-  authenticate: () => Promise.resolve(true),
-  gcEnabled: true,
-});
+const wss = new WebSocketServer({ port: 1234 });
 
-ysocketio.initialize();
+wss.on("connection", (ws, req) => {
+  setupWSConnection(ws, req);
+});
 
 app.use("/api/pages", createPageRoutes(io));
 
@@ -44,4 +45,5 @@ const PORT = process.env.PORT || 3001;
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`WebSocket server running on port 1234`);
 });

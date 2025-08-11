@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import * as Y from "yjs";
-import { SocketIOProvider } from "y-socket.io";
+import { WebsocketProvider } from "y-websocket";
 import { Block } from "./api";
 
 const generateUserName = () => {
@@ -11,7 +11,7 @@ const generateUserName = () => {
 export function useYDoc(pageId: string) {
   const [isConnected, setIsConnected] = useState(false);
   const ydocRef = useRef<Y.Doc>();
-  const providerRef = useRef<SocketIOProvider>();
+  const providerRef = useRef<WebsocketProvider>();
   const blocksMapRef = useRef<Y.Map<any>>();
   const awarenessRef = useRef<any>();
   const userNameRef = useRef<string>(generateUserName());
@@ -20,12 +20,8 @@ export function useYDoc(pageId: string) {
     if (!pageId) return;
 
     const ydoc = new Y.Doc();
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:3001";
-    const provider = new SocketIOProvider(wsUrl, `page-${pageId}`, ydoc, {
-      autoConnect: true,
-      resyncInterval: 5000,
-      disableBc: false,
-    });
+    const wsUrl = process.env.NEXT_PUBLIC_YJS_WS_URL || "ws://localhost:1234";
+    const provider = new WebsocketProvider(wsUrl, `page-${pageId}`, ydoc);
 
     const blocksMap = ydoc.getMap("blocks");
     const awareness = provider.awareness;
